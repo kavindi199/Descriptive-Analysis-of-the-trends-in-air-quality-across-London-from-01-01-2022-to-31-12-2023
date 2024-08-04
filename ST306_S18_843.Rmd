@@ -1,0 +1,281 @@
+---
+title: "ST306_Mini_Project"
+author: "S/18/843"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(skimr)
+library(latex2exp)
+```
+
+```{r}
+local_data <- read_csv("../Data/london_local_data_2022.csv")
+view(local_data)
+local_sites <- read_csv("../Data/london_local_sites.csv")
+view(local_sites)
+```
+
+```{r}
+glimpse(local_data)
+glimpse(local_sites)
+```
+
+Data Cleaning Part
+```{r}
+#remove empty rows and columns
+local_data <- local_data %>%
+  remove_empty(c("cols","rows"))
+view(local_data)
+```
+
+```{r}
+#replace any missing values in the "local_data" dataset with the value 0.
+local_data[is.na(local_data)] <- 0
+view(local_data)
+```
+
+```{r}
+skim(local_data)
+```
+
+```{r}
+glimpse(local_data)
+```
+```{r}
+local_data <- local_data %>%
+  separate(date, into = c("date","time"), sep = 10)
+view(local_data)
+```
+
+```{r}
+local_data <- local_data %>%
+  mutate(month = factor(case_when(
+    month(date)==1 ~ "january",
+    month(date)==2 ~ "february",
+    month(date)==3 ~ "march",
+    month(date)==4 ~ "april",
+    month(date)==5 ~ "may",
+    month(date)==6 ~ "june",
+    month(date)==7 ~ "july",
+    month(date)==8 ~ "august",
+    month(date)==9 ~ "september",
+    month(date)==10 ~ "october",
+    month(date)==11 ~ "november",
+    month(date)==12 ~ "december",
+  )), year = year(date))
+```
+
+```{r}
+local_data$month <- factor(local_data$month, 
+                                  levels = c("january","february","march","april","may",
+                                "june","july","august","september","october","november","december"))
+```
+
+```{r}
+head(local_data)
+```
+
+```{r}
+view(local_data)
+```
+
+Analyzing Part
+
+```{r}
+nox_graph <- local_data %>%
+  ggplot(aes(x=month, y=nox))+
+  geom_boxplot(aes(col=month))+
+  coord_flip()+
+  theme_minimal()+
+  labs(x = "Month",
+       y = "Nitrogen oxide Levels")
+nox_graph
+```
+
+```{r}
+postscript(file = "nox_graph.eps", width = 10, height = 8, horizontal = F)
+nox_graph
+dev.off()
+```
+
+```{r}
+no2_graph <- local_data %>%
+  ggplot(aes(x=month, y=no2))+
+  geom_boxplot(aes(col=month))+
+  coord_flip()+
+  labs(x = "Month",
+       y = "Nitrogen Dioxide Levels")
+no2_graph
+```
+
+```{r}
+postscript(file = "no2_graph.eps", width = 10, height = 8, horizontal = F)
+no2_graph
+dev.off()
+```
+
+```{r}
+no_graph <- local_data %>%
+  ggplot(aes(x=month, y=no))+
+  geom_boxplot(aes(col=month))+
+  coord_flip()+
+  labs(x = "Month",
+       y = "Nitrogen monoxide Levels")
+no_graph
+```
+
+```{r}
+postscript(file = "no_graph.eps", width = 10, height = 8, horizontal = F)
+no_graph
+dev.off()
+```
+
+```{r}
+pm10_graph <- local_data %>%
+  ggplot(aes(x=month, y=pm10))+
+  geom_boxplot(aes(col=month))+
+  coord_flip()+
+  labs(x = "Month",
+       y = "pm10 Levels")
+pm10_graph
+```
+
+```{r}
+postscript(file = "pm10_graph.eps", width = 10, height = 8, horizontal = F)
+pm10_graph
+dev.off()
+```
+
+```{r}
+o3_count_graph <- local_data %>%
+  ggplot(aes(x=o3))+
+  geom_freqpoly(aes(col = month))+
+  labs(x = "o3 levels",
+       y = "o3 count")
+o3_count_graph
+```
+
+```{r}
+postscript(file = "o3_count_graph.eps", width = 10, height = 8, horizontal = F)
+o3_count_graph
+dev.off()
+```
+
+```{r}
+pm2_5_count_graph <- local_data %>%
+  ggplot(aes(x=pm2_5))+
+  geom_freqpoly(aes(col = month))+
+  labs(x = "pm2.5 levels",
+       y = "pm2.5 count")
+pm2_5_count_graph
+```
+
+```{r}
+postscript(file = "pm2_5_count_graph.eps", width = 10, height = 8, horizontal = F)
+pm2_5_count_graph
+dev.off()
+```
+
+```{r}
+so2_count_graph <- local_data %>%
+  ggplot(aes(x=so2))+
+  geom_freqpoly(aes(col = month))+
+  labs(x = "so2 levels",
+       y = "so2 count")
+so2_count_graph
+```
+
+```{r}
+postscript(file = "so2_count_graph.eps", width = 10, height = 8, horizontal = F)
+so2_count_graph
+dev.off()
+```
+
+```{r}
+Total_pollution_graph <- local_data %>%
+  ggplot(aes(x=month, y = no+no2+nox+pm10+o3+pm2_5+so2))+
+  geom_boxplot(aes(col=month))+
+  coord_flip()+
+  labs(x = "Months",
+       y = "Total pollution levels")
+Total_pollution_graph
+```
+
+```{r}
+postscript(file = "Total_pollution_graph.eps", width = 10, height = 8, horizontal = F)
+Total_pollution_graph
+dev.off()
+```
+
+```{r}
+# pollution for each month
+set1 <- local_data %>%
+  group_by(month) %>%
+  summarise(NO=sum(no),
+            NO2=sum(no2),
+            NOx=sum(nox),
+            pm10=sum(pm10),
+            O3=sum(o3),
+            pm2_5=sum(pm2_5),
+            SO2=sum(so2))
+set1
+```
+
+```{r}
+# pollution for each site
+set2 <- local_data %>%
+  group_by(site) %>%
+  summarise(NO=sum(no),
+            NO2=sum(no2),
+            NOx=sum(nox),
+            pm10=sum(pm10),
+            O3=sum(o3),
+            pm2_5=sum(pm2_5),
+            SO2=sum(so2))
+set2
+```
+
+```{r}
+set3 <- local_data%>%
+  group_by(month) %>% 
+  summarise(Total_pollutant=sum(no)+sum(no2)+sum(nox)+
+              sum(pm10)+sum(o3)+sum(pm2_5)+sum(so2))
+
+set3 %>%
+  arrange(desc(Total_pollutant))
+```
+
+```{r}
+top_five_pollution_months <- set3 %>%
+  head(5)
+top_five_pollution_months
+```
+
+```{r}
+set4 <- local_data%>%
+  group_by(site) %>% 
+  summarise(Total_pollutant=sum(no)+sum(no2)+sum(nox)+
+              sum(pm10)+sum(o3)+sum(pm2_5)+sum(so2))
+
+set4 <- set4 %>%
+  arrange(desc(Total_pollutant))
+set4
+```
+
+```{r}
+top_five_pollution_sites <- set4 %>%
+  head(5)
+top_five_pollution_sites
+```
+
